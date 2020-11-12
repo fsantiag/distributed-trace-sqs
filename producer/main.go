@@ -45,6 +45,16 @@ func setupGlobalTracer() {
 	opentracing.SetGlobalTracer(tracer)
 }
 
+type CustomMessageInput sqs.SendMessageInput
+
+func (c CustomMessageInput) Set(key, val string) {
+	if c.MessageAttributes == nil {
+		c.MessageAttributes = make(map[string]*sqs.MessageAttributeValue)
+	}
+	c.MessageAttributes[key] = &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(val)}
+	log.Println(c.MessageAttributes)
+}
+
 func main() {
 	setupGlobalTracer()
 	r := chi.NewRouter()
@@ -61,11 +71,15 @@ func main() {
 		span := opentracing.StartSpan("Producer: first span")
 		defer span.Finish()
 		queueUrl := os.Getenv("SQS_SERVER") + "/queue/" + os.Getenv("QUEUE_URL")
-		params := &sqs.SendMessageInput{
+		params := CustomMessageInput{
 			MessageBody: aws.String("Testing 1,2,3,..."), // Required
 			QueueUrl:    aws.String(queueUrl),            // Required
 		}
-		_, err := svc.SendMessage(params)
+		err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.TextMap, opentracing.TextMapWriter(params))
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = svc.SendMessage((*sqs.SendMessageInput)(&params))
 		if err != nil {
 			log.Println(err)
 		}
