@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  producer:
+    container_name: producer
+    build:
+      context: ./producer
+    environment:
+      SQS_SERVER: "http://sqs:9324"
+      QUEUE_URL: "default"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - sqs
+
+  sqs:
+    image: roribio16/alpine-sqs
+    container_name: sqs
+    ports:
+      - "9324:9324"
+      - "9325:9325"
+  # zipkin:
+  #   image: openzipkin/zipkin
+  #   ports:
+  #     - "9411:9411"
