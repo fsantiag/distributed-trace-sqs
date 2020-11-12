@@ -11,6 +11,17 @@ services:
       - "3000:3000"
     depends_on:
       - sqs
+  consumer:
+    container_name: consumer
+    build:
+      context: ./consumer
+    environment:
+      SQS_SERVER: "http://sqs:9324"
+      QUEUE_URL: "default"
+    ports:
+      - "3001:3001"
+    depends_on:
+      - sqs
 
   sqs:
     image: roribio16/alpine-sqs
