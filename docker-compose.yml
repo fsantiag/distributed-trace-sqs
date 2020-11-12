@@ -22,14 +22,14 @@ services:
       - "3001:3001"
     depends_on:
       - sqs
-
   sqs:
     image: roribio16/alpine-sqs
     container_name: sqs
     ports:
       - "9324:9324"
       - "9325:9325"
-  # zipkin:
-  #   image: openzipkin/zipkin
-  #   ports:
-  #     - "9411:9411"
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
